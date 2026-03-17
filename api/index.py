@@ -8,7 +8,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex Accumulator | Terminal</title>
+    <title>Apex Accumulator | Live Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #0B0E11; color: #EAECEF; min-height: 100vh; font-family: 'Inter', sans-serif; }
@@ -16,8 +16,8 @@ HTML_TEMPLATE = """
         .binance-bg-yellow { background-color: #FCD535; }
         .glass { background: #181A20; border: 1px solid #2B3139; border-radius: 8px; }
         .terminal-input { background: transparent; border: none; outline: none; width: 100%; color: #FCD535; font-family: monospace; }
-        .price-up { color: #0ecb81; }
-        .price-down { color: #f6465d; }
+        .price-up { color: #0ecb81; text-shadow: 0 0 8px rgba(14, 203, 129, 0.4); }
+        .price-down { color: #f6465d; text-shadow: 0 0 8px rgba(246, 70, 93, 0.4); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -29,7 +29,7 @@ HTML_TEMPLATE = """
                     <div class="binance-bg-yellow p-1.5 rounded">
                         <svg class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="currentColor"><path d="M16.624 13.9202l-2.624 2.624-2.624-2.624 2.624-2.624 2.624 2.624zm4.752-4.752l-2.624 2.624-2.624-2.624 2.624-2.624 2.624 2.624zm-9.504 0l-2.624 2.624-2.624-2.624 2.624-2.624 2.624 2.624zm4.752-4.752l-2.624 2.624-2.624-2.624 2.624-2.624 2.624 2.624z"/></svg>
                     </div>
-                    <h1 class="text-xl font-bold tracking-tighter uppercase">Apex <span class="binance-yellow">Accumulator</span></h1>
+                    <h1 class="text-xl font-bold tracking-tighter uppercase text-white">Apex <span class="binance-yellow">Accumulator</span></h1>
                 </div>
                 <a href="https://t.me/ApexTradeBot" target="_blank" class="binance-bg-yellow px-4 py-2 text-[10px] text-black font-bold rounded uppercase hover:opacity-80 transition-all">Launch Bot</a>
             </div>
@@ -37,15 +37,15 @@ HTML_TEMPLATE = """
             <div class="flex gap-6 overflow-x-auto no-scrollbar">
                 <div class="flex flex-col">
                     <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">BTC / USDT</span>
-                    <span id="btc-price" class="text-sm font-mono font-bold">---</span>
+                    <span id="btc-price" data-last="0" class="text-sm font-mono font-bold transition-colors duration-300">---</span>
                 </div>
                 <div class="flex flex-col border-l border-gray-800 pl-6">
                     <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">ETH / USDT</span>
-                    <span id="eth-price" class="text-sm font-mono font-bold text-gray-400">---</span>
+                    <span id="eth-price" data-last="0" class="text-sm font-mono font-bold text-gray-400 transition-colors duration-300">---</span>
                 </div>
                 <div class="flex flex-col border-l border-gray-800 pl-6">
                     <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">BNB / USDT</span>
-                    <span id="bnb-price" class="text-sm font-mono font-bold text-gray-400">---</span>
+                    <span id="bnb-price" data-last="0" class="text-sm font-mono font-bold text-gray-400 transition-colors duration-300">---</span>
                 </div>
             </div>
         </header>
@@ -66,9 +66,9 @@ HTML_TEMPLATE = """
         </div>
 
         <div class="glass p-6 min-h-[300px] flex flex-col justify-end bg-[#111419]">
-            <div class="text-gray-600 text-[10px] mb-4 font-mono uppercase tracking-[0.3em]">-- System Log: Secure Connection --</div>
+            <div class="text-gray-600 text-[10px] mb-4 font-mono uppercase tracking-[0.3em]">-- Live Market Feed: Connected --</div>
             <div class="text-white text-sm mb-3 font-mono leading-relaxed">
-                <span class="binance-yellow font-bold">Apex:</span> "Dashboard sync complete. Market monitoring active. Next DCA check in 42 minutes."
+                <span class="binance-yellow font-bold">Apex:</span> "Dashboard sync active. Real-time tickers enabled. Listening for market volatility..."
             </div>
             <div class="flex items-center gap-2 text-[#FCD535] font-mono">
                 <span class="animate-pulse">></span>
@@ -84,17 +84,23 @@ HTML_TEMPLATE = """
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             const symbol = data.s.toLowerCase();
-            const price = parseFloat(data.c).toLocaleString(undefined, {minimumFractionDigits: 2});
-            const el = document.getElementById(symbol.split('usdt')[0] + '-price');
+            const newPrice = parseFloat(data.c);
+            const id = symbol.split('usdt')[0] + '-price';
+            const el = document.getElementById(id);
             
             if (el) {
-                const currentText = el.innerText.replace(/,/g, '');
-                const oldPrice = parseFloat(currentText);
-                const newPrice = parseFloat(data.c);
-                el.innerText = price;
-                if (!isNaN(oldPrice)) {
-                    el.className = 'text-sm font-mono font-bold ' + (newPrice >= oldPrice ? 'price-up' : 'price-down');
+                const lastPrice = parseFloat(el.getAttribute('data-last'));
+                
+                if (lastPrice !== 0) {
+                    if (newPrice > lastPrice) {
+                        el.className = 'text-sm font-mono font-bold price-up';
+                    } else if (newPrice < lastPrice) {
+                        el.className = 'text-sm font-mono font-bold price-down';
+                    }
                 }
+                
+                el.innerText = newPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
+                el.setAttribute('data-last', newPrice);
             }
         };
     </script>
