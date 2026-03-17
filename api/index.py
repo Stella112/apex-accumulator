@@ -31,7 +31,7 @@ HTML_TEMPLATE = """
                     </div>
                     <h1 class="text-xl font-bold tracking-tighter uppercase text-white">Apex <span class="binance-yellow">Accumulator</span></h1>
                 </div>
-                <a href="https://t.me/ApexTradeBot" target="_blank" class="binance-bg-yellow px-4 py-2 text-[10px] text-black font-bold rounded uppercase hover:opacity-80 transition-all">Launch Bot</a>
+                <a href="https://t.me/apexaccumulatorbot" target="_blank" class="binance-bg-yellow px-4 py-2 text-[10px] text-black font-bold rounded uppercase hover:opacity-80 transition-all">Launch Bot</a>
             </div>
 
             <div class="flex gap-6 overflow-x-auto no-scrollbar">
