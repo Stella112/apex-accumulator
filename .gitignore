@@ -1,0 +1,7 @@
+secrets/
+TOOLS.md
+memory/
+data/
+state/
+*.log
+.env
